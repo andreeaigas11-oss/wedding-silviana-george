@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Silviana & George — Încarcă</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300;1,400&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { height: 100%; min-height: 100svh; }
+
+    body {
+      background: #111010;
+      color: #f0ede8;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 120% 100% at 50% 50%, transparent 40%, rgba(0,0,0,0.55) 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Topbar ── */
+    .topbar {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: flex-end;
+      padding: 28px 28px 0;
+    }
+
+    .lang {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      color: rgba(240,237,232,0.5);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .lang span.active { color: #f0ede8; text-decoration: underline; text-underline-offset: 3px; }
+    .lang .sep { opacity: 0.3; }
+
+    /* ── Hero ── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 32px 28px 0;
+      animation: fadeIn 0.8s ease 0.2s both;
+    }
+
+    .share-label {
+      font-size: 10px;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: rgba(240,237,232,0.4);
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .names {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: clamp(40px, 11vw, 62px);
+      line-height: 1;
+      color: #f0ede8;
+    }
+
+    .date {
+      margin-top: 12px;
+      font-size: 10px;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: rgba(240,237,232,0.4);
+    }
+
+    .diamond {
+      margin: 20px 0 0;
+      font-size: 12px;
+      color: rgba(240,237,232,0.2);
+    }
+
+    /* ── Upload area ── */
+    .upload-section {
+      position: relative;
+      z-index: 1;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 24px 48px;
+      gap: 12px;
+      animation: fadeIn 0.8s ease 0.5s both;
+    }
+
+    /* Drop zone */
+    #drop-zone {
+      border: 1px dashed rgba(240,237,232,0.35);
+      border-radius: 1px;
+      padding: 44px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.3s ease, border-color 0.3s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    #drop-zone:active,
+    #drop-zone.drag-over {
+      background: rgba(240,237,232,0.05);
+      border-color: rgba(240,237,232,0.65);
+    }
+
+    .drop-main {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 26px;
+      font-weight: 300;
+      color: #f0ede8;
+      margin-bottom: 10px;
+    }
+
+    .drop-sub {
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(240,237,232,0.4);
+    }
+
+    #file-input { display: none; }
+
+    /* Name input */
+    .name-wrap {
+      position: relative;
+    }
+
+    .name-input {
+      width: 100%;
+      background: transparent;
+      border: 1px solid rgba(240,237,232,0.25);
+      border-radius: 1px;
+      padding: 18px 20px;
+      color: #f0ede8;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+
+    .name-input::placeholder {
+      color: rgba(240,237,232,0.3);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-size: 11px;
+    }
+
+    .name-input:focus { border-color: rgba(240,237,232,0.6); }
+
+    /* Preview grid */
+    #preview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .preview-item {
+      aspect-ratio: 1;
+      position: relative;
+      overflow: hidden;
+      border-radius: 1px;
+      background: rgba(240,237,232,0.05);
+    }
+
+    .preview-item img,
+    .preview-item video {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+
+    .preview-item .remove-btn {
+      position: absolute; top: 5px; right: 5px;
+      width: 22px; height: 22px;
+      background: rgba(0,0,0,0.7);
+      color: white; border: none; border-radius: 50%;
+      font-size: 11px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.2s;
+    }
+
+    .preview-item:hover .remove-btn,
+    .preview-item .remove-btn:focus { opacity: 1; }
+
+    .video-badge {
+      position: absolute; bottom: 5px; left: 5px;
+      background: rgba(0,0,0,0.6);
+      color: white; font-size: 9px; letter-spacing: 0.1em;
+      padding: 2px 6px; border-radius: 1px;
+    }
+
+    /* File count */
+    #file-count {
+      font-size: 11px;
+      color: rgba(240,237,232,0.4);
+      letter-spacing: 0.1em;
+      text-align: center;
+      display: none;
+    }
+
+    /* Progress */
+    #progress-wrap { display: none; }
+
+    .progress-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(240,237,232,0.4);
+      margin-bottom: 10px;
+    }
+
+    .progress-track { height: 1px; background: rgba(240,237,232,0.15); }
+    .progress-fill  { height: 1px; background: #f0ede8; width: 0%; transition: width 0.4s ease; }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 22px 24px;
+      border: 1px solid rgba(240,237,232,0.3);
+      border-radius: 1px;
+      background: transparent;
+      color: #f0ede8;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      font-size: 11px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: background 0.3s ease, border-color 0.3s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:hover, .btn:active {
+      background: rgba(240,237,232,0.07);
+      border-color: rgba(240,237,232,0.65);
+    }
+
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn svg { opacity: 0.65; flex-shrink: 0; }
+
+    #submit-btn { display: none; }
+
+    /* Success */
+    #success-msg {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 24px;
+      animation: fadeIn 0.6s ease;
+    }
+
+    .success-symbol {
+      font-size: 32px;
+      margin-bottom: 24px;
+      color: rgba(240,237,232,0.5);
+    }
+
+    .success-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 36px;
+      font-weight: 300;
+      margin-bottom: 10px;
+    }
+
+    .success-sub {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(240,237,232,0.4);
+      margin-bottom: 36px;
+    }
+
+    /* Error toast */
+    .toast {
+      position: fixed;
+      bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #8b2020;
+      color: white;
+      font-size: 12px;
+      padding: 12px 24px;
+      border-radius: 1px;
+      transition: transform 0.4s ease;
+      z-index: 999;
+      white-space: nowrap;
+      letter-spacing: 0.05em;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-height: 700px) {
+      .hero { padding-top: 16px; }
+      .names { font-size: 38px; }
+      #drop-zone { padding: 28px 24px; }
+      .btn { padding: 16px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="lang">
+      <span class="active">RO</span>
+      <span class="sep">|</span>
+      <span>EN</span>
+    </div>
+  </div>
+
+  <div class="hero">
+    <span class="share-label">Share the love</span>
+    <h1 class="names">Silviana &amp; George</h1>
+    <p class="date">22 August 2026</p>
+    <div class="diamond">✦</div>
+  </div>
+
+  <!-- Upload form -->
+  <div class="upload-section" id="upload-form">
+
+    <div id="drop-zone" tabindex="0" role="button" aria-label="Selectează fișiere">
+      <p class="drop-main">Apasă pentru a selecta</p>
+      <p class="drop-sub">Poze sau video</p>
+      <input type="file" id="file-input" multiple accept="image/*,video/*"/>
+    </div>
+
+    <input class="name-input" type="text" id="uploader-name" placeholder="Numele tău" autocomplete="name"/>
+
+    <div id="preview-grid"></div>
+    <p id="file-count"></p>
+
+    <div id="progress-wrap">
+      <div class="progress-labels">
+        <span>Se încarcă</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+    </div>
+
+    <button class="btn" id="submit-btn">
+      <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+        <path d="M8.5 11V3M8.5 3L5 6.5M8.5 3L12 6.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M2 12.5V14.5H15V12.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      Selectează fișiere
+    </button>
+
+    <a class="btn" href="index.html">
+      ← Înapoi
+    </a>
+
+  </div>
+
+  <!-- Success -->
+  <div id="success-msg">
+    <div class="success-symbol">✦</div>
+    <h2 class="success-title">Mulțumim!</h2>
+    <p class="success-sub">Amintirile tale sunt în album</p>
+    <a class="btn" href="album.html" style="max-width:320px; margin: 0 auto;">
+      <svg width="17" height="17" viewBox="0 0 17 17" fill="none">
+        <rect x="2" y="2.5" width="13" height="11" rx="1" stroke="currentColor" stroke-width="1.2"/>
+        <path d="M2 11L5 8L7.5 10.5L10.5 7L15 11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      Deschide albumul
+    </a>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const CLOUDINARY_CLOUD_NAME   = 'dv4ouytoh';
+    const CLOUDINARY_UPLOAD_PRESET = 'silviana-george-wedding';
+    const SUPABASE_URL    = 'https://tkjgsuiocutuiuwxxinc.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRramdzdWlvY3V0dWl1d3h4aW5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyODM4MTQsImV4cCI6MjA5Mjg1OTgxNH0.0gC8II_ABFmJf17_30YE7Gu6jSsd7-lkNdU8oHjGKU0';
+    const SUPABASE_TABLE  = 'wedding_photos';
+
+    const dropZone    = document.getElementById('drop-zone');
+    const fileInput   = document.getElementById('file-input');
+    const previewGrid = document.getElementById('preview-grid');
+    const fileCount   = document.getElementById('file-count');
+    const submitBtn   = document.getElementById('submit-btn');
+    const progressWrap = document.getElementById('progress-wrap');
+    const progressFill = document.getElementById('progress-fill');
+    const progressPct  = document.getElementById('progress-pct');
+    const uploadForm  = document.getElementById('upload-form');
+    const successMsg  = document.getElementById('success-msg');
+    const toast       = document.getElementById('toast');
+
+    let selectedFiles = [];
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') fileInput.click(); });
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); handleFiles([...e.dataTransfer.files]); });
+    fileInput.addEventListener('change', () => handleFiles([...fileInput.files]));
+
+    function handleFiles(newFiles) {
+      const valid = newFiles.filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'));
+      if (!valid.length) return showToast('Doar imagini și videoclipuri sunt acceptate.');
+      selectedFiles = [...selectedFiles, ...valid];
+      renderPreviews();
+      updateUI();
+    }
+
+    function renderPreviews() {
+      previewGrid.innerHTML = '';
+      selectedFiles.forEach((file, idx) => {
+        const item = document.createElement('div');
+        item.className = 'preview-item';
+        if (file.type.startsWith('image/')) {
+          const img = document.createElement('img');
+          img.src = URL.createObjectURL(file);
+          item.appendChild(img);
+        } else {
+          const vid = document.createElement('video');
+          vid.src = URL.createObjectURL(file);
+          vid.muted = true; vid.playsInline = true;
+          item.appendChild(vid);
+          const badge = document.createElement('span');
+          badge.className = 'video-badge'; badge.textContent = 'VIDEO';
+          item.appendChild(badge);
+        }
+        const rm = document.createElement('button');
+        rm.className = 'remove-btn'; rm.innerHTML = '✕';
+        rm.addEventListener('click', e => { e.stopPropagation(); selectedFiles.splice(idx, 1); renderPreviews(); updateUI(); });
+        item.appendChild(rm);
+        previewGrid.appendChild(item);
+      });
+    }
+
+    function updateUI() {
+      const n = selectedFiles.length;
+      fileCount.style.display = n > 0 ? 'block' : 'none';
+      fileCount.textContent = `${n} fișier${n !== 1 ? 'e' : ''} selectat${n !== 1 ? 'e' : ''}`;
+      submitBtn.style.display = n > 0 ? 'flex' : 'none';
+      submitBtn.textContent = '';
+      if (n > 0) {
+        submitBtn.innerHTML = `<svg width="17" height="17" viewBox="0 0 17 17" fill="none"><path d="M8.5 11V3M8.5 3L5 6.5M8.5 3L12 6.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 12.5V14.5H15V12.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg> Trimite amintirile`;
+      }
+    }
+
+    submitBtn.addEventListener('click', async () => {
+      if (!selectedFiles.length) return;
+      const name = document.getElementById('uploader-name').value.trim() || 'Anonim';
+      submitBtn.disabled = true;
+      progressWrap.style.display = 'block';
+
+      let uploaded = 0;
+      const results = [];
+
+      for (const file of selectedFiles) {
+        try {
+          const fd = new FormData();
+          fd.append('file', file);
+          fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+          fd.append('folder', 'silviana-george-wedding');
+          const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, { method: 'POST', body: fd });
+          if (!res.ok) throw new Error();
+          const data = await res.json();
+          results.push({ url: data.secure_url, public_id: data.public_id, resource_type: data.resource_type, uploader_name: name, uploaded_at: new Date().toISOString() });
+        } catch { showToast(`Eroare la: ${file.name}`); }
+        uploaded++;
+        const pct = Math.round((uploaded / selectedFiles.length) * 100);
+        progressFill.style.width = pct + '%';
+        progressPct.textContent = pct + '%';
+      }
+
+      if (results.length > 0) {
+        try {
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Prefer': 'return=minimal' },
+            body: JSON.stringify(results)
+          });
+          if (!res.ok) throw new Error();
+        } catch { showToast('Eroare la salvare. Încearcă din nou.'); submitBtn.disabled = false; return; }
+      }
+
+      uploadForm.style.display = 'none';
+      successMsg.style.display = 'flex';
+    });
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+  </script>
+</body>
+</html>
